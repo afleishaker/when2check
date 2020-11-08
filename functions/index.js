@@ -3,7 +3,8 @@ const admin = require('firebase-admin');
 const moment = require('moment');
 const puppeteer = require('puppeteer');
 const cors = require('cors')({origin: true});
-const sgMail = require('@sendgrid/mail')
+const sgMail = require('@sendgrid/mail');
+const client = require('twilio')(functions.config().twilio.sid, functions.config().twilio.token);
 
 sgMail.setApiKey(functions.config().sendgrid.key);
 admin.initializeApp();
@@ -107,6 +108,18 @@ const getAvailability = async (url) => {
                     .catch((error) => {
                         console.error(error)
                     })
+                if (user.data().phoneNumber) {
+                    client.messages
+                        .create({
+                            body: 'Updated Availability for ' + url + ': ' + availability[0] + "/" + availability[1],
+                            from: '+19146537960',
+                            to: user.data().phoneNumber
+                        })
+                        .then(message => console.log(message.sid))
+                        .catch((error) => {
+                            console.error(error)
+                        });
+                }
             }
         }
     }
@@ -115,7 +128,13 @@ const getAvailability = async (url) => {
     const page = await browser.newPage();
     await page.goto(url);
     let availability = await page.evaluate(() => {
-        return document.getElementById("MaxAvailable").innerText.split("/");
+        const result = document.getElementById("MaxAvailable");
+        if (result) {
+            return result.innerText.split("/");
+        }
+        else {
+            return ["0", "0"];
+        }
     });
     console.log(availability);
     admin.firestore().collection('links').where('link', '==', url).get().then(querySnapshot => {
@@ -129,9 +148,12 @@ const getAvailability = async (url) => {
     return availability;
 };
 
-exports.availability = functions.https.onRequest((request, response) => {
-    cors(request, response, async () => {
-        const data = await getAvailability(request.body.url);
-        response.send(data);
-    });
+exports.availability = functions.runWith({
+    timeoutSeconds: 540,
+    memory: '2GB'
+}).pubsub.schedule('every 5 minutes').onRun(async (context) => {
+    const querySnapshot = await admin.firestore().collection('links').get();
+    for (const document of querySnapshot.docs) {
+        await getAvailability(document.data().link);
+    }
 });

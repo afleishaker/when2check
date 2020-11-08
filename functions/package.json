@@ -23,7 +23,8 @@
     "moment": "^2.29.1",
     "moment-range": "^4.0.2",
     "node-fetch": "^2.6.0",
-    "puppeteer": "^1.18.1"
+    "puppeteer": "^1.18.1",
+    "twilio": "^3.51.0"
   },
   "devDependencies": {
     "eslint": "^5.12.0",
