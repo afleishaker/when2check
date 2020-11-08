@@ -139,17 +139,13 @@ const getAvailability = async (url) => {
     const browser = await puppeteer.launch({headless: true});
     const page = await browser.newPage();
     await page.goto(url);
-    await admin.firestore().collection('links').where('link', '==', url).get().then(async querySnapshot => {
-        function parseColor(color) {
-            var arr=[]; color.replace(/[\d+\.]+/g, function(v) { arr.push(parseFloat(v)); });
-            return "#" + arr.slice(0, 3).map(toHex).join("")
-        }
+    page.on('console', consoleObj => console.log(consoleObj.text()));
 
-        function toHex(int) {
-            var hex = int.toString(16);
-            return hex.length === 1 ? "0" + hex : hex;
-        }
+    await admin.firestore().collection('links').where('link', '==', url).get().then(async querySnapshot => {
+
+
         for (const link of querySnapshot.docs) {
+            console.log("link:", link);
             let results = await page.evaluate(() => {
                 const available = document.getElementById("MaxAvailable");
 
