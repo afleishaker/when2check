@@ -23,12 +23,12 @@ const createEvent = async (uid, title, startDate, endDate, startTime, endTime, n
             node.dispatchEvent (clickEvent);
         }
 
-        startDate = moment(startDate);
-        endDate = moment(endDate);
+        // startDate = moment(startDate);
+        // endDate = moment(endDate);
 
         // Selects date options for event
         do{
-            var dateElem = document.querySelector("input[value='"+ startDate.format('YYYY-MM-DD') +"']").previousElementSibling;
+            var dateElem = document.querySelector("input[value='"+ startDate +"']").previousElementSibling;
             triggerMouseEvent(dateElem, "mousedown")
             triggerMouseEvent(dateElem, "mouseup")
             startDate.add(1, "day");

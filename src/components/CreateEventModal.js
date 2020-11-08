@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import moment from "moment";
+import moment from "moment-timezone";
 import { Modal, Form, Input, DatePicker, InputNumber, TimePicker } from "antd";
 import {withFirebase} from "./Firebase";
 import {useAuthState} from "react-firebase-hooks/auth";
+
 
 
 const CreateEventModal = ({visible, setModalVisible, firebase}) => {
@@ -10,11 +11,13 @@ const CreateEventModal = ({visible, setModalVisible, firebase}) => {
     const [loading, setLoading] = useState(false);
     const [user] = useAuthState(firebase.auth);
 
+    moment.tz.setDefault("America/New_York")
+
     function disabledDate(current) {
         // Can not select days before start of this week and end of 4 weeks out
         const endDate = moment().endOf('week').add(4, 'week');
-        const startDate = moment().startOf('week')
-        return current < startDate || current >= endDate
+        const startDate = moment().startOf('day');
+        return current < startDate || current > endDate;
     }
 
     function disabledNotifications(current) {
