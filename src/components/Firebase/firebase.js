@@ -24,17 +24,10 @@ class Firebase {
 
     // *** Functions API ***
     createEvent = (values) => {
-        console.log(values);
-        // const userID = this.auth.currentUser.phoneNumber;
-        // console.log(this.auth.currentUser);
-        // const createEvent = this.functions.httpsCallable("createEvent")
-        // createEvent({
-        //     userID,
-        //     eventTitle,
-        //
-        // }).then(result => {
-        //     console.log(result)
-        // })
+        const createEvent = this.functions.httpsCallable("createEvent")
+        createEvent(values).then(result => {
+            console.log(result)
+        });
     }
 
     // *** Auth API ***

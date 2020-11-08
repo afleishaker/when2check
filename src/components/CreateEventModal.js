@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import moment from "moment";
 import { Modal, Form, Input, DatePicker, InputNumber, TimePicker } from "antd";
 import {withFirebase} from "./Firebase";
+import {useAuthState} from "react-firebase-hooks/auth";
 
 
 const CreateEventModal = ({visible, setModalVisible, firebase}) => {
 
     const [loading, setLoading] = useState(false);
+    const [user] = useAuthState(firebase.auth);
 
     function disabledDate(current) {
         // Can not select days before start of this week and end of 4 weeks out
@@ -25,6 +27,7 @@ const CreateEventModal = ({visible, setModalVisible, firebase}) => {
     function submitForm(){
         form.validateFields().then(values => {
             const transformedValues = {
+                uid: user.uid,
                 title: values.eventTitle,
                 startDate: values.potentialDates[0].format('YYYY-MM-DD'),
                 endDate: values.potentialDates[1].format('YYYY-MM-DD'),
