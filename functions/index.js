@@ -205,6 +205,8 @@ exports.availability = functions.runWith({
 }).pubsub.schedule('every 5 minutes').onRun(async (context) => {
     const querySnapshot = await admin.firestore().collection('links').get();
     for (const document of querySnapshot.docs) {
-        await getAvailability(document.data().link);
+        if (document.data().link) {
+            await getAvailability(document.data().link);
+        }
     }
 });
