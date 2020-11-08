@@ -3,7 +3,6 @@ import moment from "moment";
 import { Modal, Form, Input, DatePicker, InputNumber, TimePicker } from "antd";
 import {withFirebase} from "./Firebase";
 import {useAuthState} from "react-firebase-hooks/auth";
-require('moment-timezone');
 
 
 const CreateEventModal = ({visible, setModalVisible, firebase}) => {
@@ -30,10 +29,10 @@ const CreateEventModal = ({visible, setModalVisible, firebase}) => {
             const transformedValues = {
                 uid: user.uid,
                 title: values.eventTitle,
-                startDate: values.potentialDates[0].tz("America/New_York").format('YYYY-MM-DD'),
-                endDate: values.potentialDates[1].tz("America/New_York").format('YYYY-MM-DD'),
-                startTime: values.times[0].tz("America/New_York").format('HH'),
-                endTime: values.times[1].tz("America/New_York").format('HH'),
+                startDate: values.potentialDates[0].format('YYYY-MM-DD'),
+                endDate: values.potentialDates[1].format('YYYY-MM-DD'),
+                startTime: values.times[0].format('HH'),
+                endTime: values.times[1].format('HH'),
                 notifyUntil: values.notifyUntil.format('YYYY-MM-DD'),
                 expectedPeople: values.expectedPeople
             };
