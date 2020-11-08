@@ -25,8 +25,6 @@ const createEvent = async (uid, title, startDate, endDate, startTime, endTime, n
             node.dispatchEvent (clickEvent);
         }
 
-        console.log("startDate: ", startDate);
-        console.log("endDate:", endDate);
         startDate = moment(startDate);
         endDate = moment(endDate);
 
@@ -101,6 +99,16 @@ const getAvailability = async (url) => {
         return notification;
     }
 
+    function parseColor(color) {
+        var arr=[]; color.replace(/[\d+\.]+/g, function(v) { arr.push(parseFloat(v)); });
+        return "#" + arr.slice(0, 3).map(toHex).join("")
+    }
+
+    function toHex(int) {
+        var hex = int.toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+    }
+
     async function notifySubscribers(subscribers, url, availability, times) {
         for (const uid of subscribers) {
             const user = await admin.firestore().collection('users').doc(uid).get();
@@ -150,16 +158,6 @@ const getAvailability = async (url) => {
                     const table = document.getElementById("GroupKey").children[0];
                     const header = table.getElementsByTagName("td");
                     const maxAvailableColor = header[header.length-1].bgColor;
-
-                    const parseColor = (color) => {
-                        var arr=[]; color.replace(/[\d+\.]+/g, function(v) { arr.push(parseFloat(v)); });
-                        return "#" + arr.slice(0, 3).map(toHex).join("")
-                    }
-
-                    const toHex = (int) => {
-                        var hex = int.toString(16);
-                        return hex.length == 1 ? "0" + hex : hex;
-                    }
 
                     const timeCells = Array.from(document.querySelectorAll("[id^='GroupTime']"))
                         .filter(obj => parseColor(obj.style.background) === maxAvailableColor);
