@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {Avatar, Layout, Menu, Row, Dropdown} from "antd";
-import {UserOutlined} from "@ant-design/icons";
+import { UserOutlined, PhoneOutlined, RightCircleOutlined } from "@ant-design/icons";
 import {withFirebase} from "./Firebase";
 import {useAuthState} from "react-firebase-hooks/auth";
 import Logo from "./Logo";
@@ -19,11 +19,11 @@ const Navbar = ({firebase}) => {
                 </Menu>
                 <Dropdown overlay={
                     <Menu>
-                        <Menu.Item onClick={() => firebase.signOut()}>
-                            Sign Out
-                        </Menu.Item>
                         <Menu.Item onClick={() => showPhoneModal(true)}>
-                            Add Phone Number
+                            Add Phone Number <PhoneOutlined />
+                        </Menu.Item>
+                        <Menu.Item onClick={() => firebase.signOut()}>
+                            Sign Out <RightCircleOutlined />
                         </Menu.Item>
                     </Menu>
                 } placement="bottomRight" arrow >

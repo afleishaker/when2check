@@ -38,10 +38,16 @@ class Firebase {
     }
 
     addPhoneNumber = (phoneNumber) => {
-        console.log("Phone Number is:", phoneNumber);
        this.firestore.collection('users').doc(this.auth.currentUser.uid).set({
            phoneNumber
        }, { merge: true})
+    }
+
+    removeUserFromEvent = (eventID) => {
+        const linksCollection = this.firestore.collection('links');
+        linksCollection.doc(eventID).set({
+            subscribers: firebase.firestore.FieldValue.arrayRemove(this.auth.currentUser.uid)
+        })
     }
 
     signOut = () => this.auth.signOut();
