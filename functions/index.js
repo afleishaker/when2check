@@ -37,6 +37,7 @@ const createEvent = async (uid, title, startDate, endDate, startTime, endTime, n
         // Selects time options for event
         document.querySelector("[name='NoEarlierThan']").value = startTime;
         document.querySelector("[name='NoLaterThan']").value = endTime;
+        document.querySelector("[name='TimeZone']").value = "America/New_York";
 
         // Sets title for event
         document.getElementById("NewEventName").value = title;

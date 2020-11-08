@@ -3,6 +3,7 @@ import moment from "moment";
 import { Modal, Form, Input, DatePicker, InputNumber, TimePicker } from "antd";
 import {withFirebase} from "./Firebase";
 import {useAuthState} from "react-firebase-hooks/auth";
+require('moment-timezone');
 
 
 const CreateEventModal = ({visible, setModalVisible, firebase}) => {
