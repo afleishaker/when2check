@@ -99,15 +99,6 @@ const getAvailability = async (url) => {
         return notification;
     }
 
-    function parseColor(color) {
-        var arr=[]; color.replace(/[\d+\.]+/g, function(v) { arr.push(parseFloat(v)); });
-        return "#" + arr.slice(0, 3).map(toHex).join("")
-    }
-
-    function toHex(int) {
-        var hex = int.toString(16);
-        return hex.length === 1 ? "0" + hex : hex;
-    }
 
     async function notifySubscribers(subscribers, url, availability, times) {
         for (const uid of subscribers) {
@@ -149,7 +140,15 @@ const getAvailability = async (url) => {
     const page = await browser.newPage();
     await page.goto(url);
     await admin.firestore().collection('links').where('link', '==', url).get().then(async querySnapshot => {
+        function parseColor(color) {
+            var arr=[]; color.replace(/[\d+\.]+/g, function(v) { arr.push(parseFloat(v)); });
+            return "#" + arr.slice(0, 3).map(toHex).join("")
+        }
 
+        function toHex(int) {
+            var hex = int.toString(16);
+            return hex.length === 1 ? "0" + hex : hex;
+        }
         for (const link of querySnapshot.docs) {
             let results = await page.evaluate(() => {
                 const available = document.getElementById("MaxAvailable");
@@ -160,7 +159,17 @@ const getAvailability = async (url) => {
                     const maxAvailableColor = header[header.length-1].bgColor;
 
                     const timeCells = Array.from(document.querySelectorAll("[id^='GroupTime']"))
-                        .filter(obj => parseColor(obj.style.background) === maxAvailableColor);
+                        .filter(obj => {
+                            let color = obj.style.background;
+                            var arr=[];
+                            color.replace(/[\d+\.]+/g, function(v) {
+                                arr.push(parseFloat(v));
+                            });
+                            return "#" + arr.slice(0, 3).map((elem) => {
+                                elem = int.toString(16);
+                                return elem.length === 1 ? "0" + elem : elem
+                            }) === maxAvailableColor;
+                        });
 
                     const dates = [];
                     const startDate = moment(link.data().startDate);
