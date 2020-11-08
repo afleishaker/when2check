@@ -144,11 +144,9 @@ const getAvailability = async (url) => {
     console.log("URL", url);
     // eslint-disable-next-line promise/always-return
     await admin.firestore().collection('links').where('link', '==', url).get().then(querySnapshot => {
-        console.log("querySnapshot:", querySnapshot);
 
         querySnapshot.docs.forEach(async link => {
-            console.log("link:", link);
-            let results = await page.evaluate(() => {
+            let results = await page.evaluate((link) => {
                 const available = document.getElementById("MaxAvailable");
 
                 if (available) {
@@ -179,14 +177,14 @@ const getAvailability = async (url) => {
                         startDate.add(1, "day");
                     }  while(!startDate.isAfter(endDate));
 
-                    timeCells.map(time => [dates.get(time.dataset.col), link.data().startTime+(.25*time.dataset.row)])
+                    timeCells.map(time => [dates.get(time.dataset.col), link.data().startTime+(0.25*time.dataset.row)])
 
                     return [available.innerText.split("/"), timeCells];
                 }
                 else {
                     return [["0", "0"], []];
                 }
-            });
+            }, link);
             const availability = results[0];
             const times = results[1];
             console.log(url + ": " + availability[0], availability[1]);
