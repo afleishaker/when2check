@@ -70,7 +70,7 @@ exports.createEvent = functions.runWith({
     cors(request, response, async () => {
         console.log("Request Body:")
         console.log(request.body);
-        const { uid, title, startDate, endDate, startTime, endTime, notifyUntil, expectedPeople } = request.body;
+        const { uid, title, startDate, endDate, startTime, endTime, notifyUntil, expectedPeople } = request.body.data;
         console.log("uid:", uid)
         console.log("title:", title)
 
