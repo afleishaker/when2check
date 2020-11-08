@@ -25,14 +25,23 @@ class Firebase {
     // *** Functions API ***
     createEvent = (values) => {
         const createEvent = this.functions.httpsCallable("createEvent")
-        createEvent(values).then(result => {
-            console.log(result)
+        createEvent(values).then(() => {
+            console.log("Created event successfully", values)
+        }).catch(err => {
+            console.log("There was an error creating an event: ", err);
         });
     }
 
     // *** Auth API ***
     signInWithGoogle = () => {
         return this.auth.signInWithPopup(this.googleProvider);
+    }
+
+    addPhoneNumber = (phoneNumber) => {
+        console.log("Phone Number is:", phoneNumber);
+       this.firestore.collection('users').doc(this.auth.currentUser.uid).set({
+           phoneNumber
+       }, { merge: true})
     }
 
     signOut = () => this.auth.signOut();
