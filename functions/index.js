@@ -146,65 +146,63 @@ const getAvailability = async (url) => {
     await admin.firestore().collection('links').where('link', '==', url).get().then(querySnapshot => {
         console.log("querySnapshot:", querySnapshot);
 
-        console.log("Links", querySnapshot.docs.forEach(link => console.log(link.data())));
+        querySnapshot.docs.forEach(async link => {
+            console.log("link:", link);
+            let results = await page.evaluate(() => {
+                const available = document.getElementById("MaxAvailable");
 
-        // for (const link of querySnapshot.docs) {
-        //     console.log("link:", link);
-        //     let results = await page.evaluate(() => {
-        //         const available = document.getElementById("MaxAvailable");
-        //
-        //         if (available) {
-        //             const table = document.getElementById("GroupKey").children[0];
-        //             const header = table.getElementsByTagName("td");
-        //             const maxAvailableColor = header[header.length-1].bgColor;
-        //
-        //             const timeCells = Array.from(document.querySelectorAll("[id^='GroupTime']"))
-        //                 .filter(obj => {
-        //                     let color = obj.style.background;
-        //                     var arr=[];
-        //                     color.replace(/[\d+\.]+/g, function(v) {
-        //                         arr.push(parseFloat(v));
-        //                     });
-        //                     return "#" + arr.slice(0, 3).map((elem) => {
-        //                         let hex = elem.toString(16);
-        //                         return hex.length === 1 ? "0" + hex : hex
-        //                     }) === maxAvailableColor;
-        //                 });
-        //
-        //             const dates = [];
-        //             const startDate = moment(link.data().startDate);
-        //             const endDate = moment(link.data().endDate);
-        //
-        //             // Selects date options for event
-        //             do{
-        //                 dates.push(startDate.clone());
-        //                 startDate.add(1, "day");
-        //             }  while(!startDate.isAfter(endDate));
-        //
-        //             timeCells.map(time => [dates.get(time.dataset.col), link.data().startTime+(.25*time.dataset.row)])
-        //
-        //             return [available.innerText.split("/"), timeCells];
-        //         }
-        //         else {
-        //             return [["0", "0"], []];
-        //         }
-        //     });
-        //     const availability = results[0];
-        //     const times = results[1];
-        //     console.log(url + ": " + availability[0], availability[1]);
-        //
-        //     if (link.data().availablePeople !== availability[0] || link.data().currentPeople !== availability[1]) {
-        //         await admin.firestore().collection('links').doc(link.id).update({
-        //             availablePeople: availability[0],
-        //             currentPeople: availability[1],
-        //             lastCheckedTime: admin.firestore.FieldValue.serverTimestamp()
-        //         });
-        //         await notifySubscribers(link.data().subscribers, url, availability, times);
-        //     }
-        //     else {
-        //         await admin.firestore().collection('links').doc(link.id).update({lastCheckedTime: admin.firestore.FieldValue.serverTimestamp()});
-        //     }
-        // }
+                if (available) {
+                    const table = document.getElementById("GroupKey").children[0];
+                    const header = table.getElementsByTagName("td");
+                    const maxAvailableColor = header[header.length-1].bgColor;
+
+                    const timeCells = Array.from(document.querySelectorAll("[id^='GroupTime']"))
+                        .filter(obj => {
+                            let color = obj.style.background;
+                            var arr=[];
+                            color.replace(/[\d+\.]+/g, function(v) {
+                                arr.push(parseFloat(v));
+                            });
+                            return "#" + arr.slice(0, 3).map((elem) => {
+                                let hex = elem.toString(16);
+                                return hex.length === 1 ? "0" + hex : hex
+                            }) === maxAvailableColor;
+                        });
+
+                    const dates = [];
+                    const startDate = moment(link.data().startDate);
+                    const endDate = moment(link.data().endDate);
+
+                    // Selects date options for event
+                    do{
+                        dates.push(startDate.clone());
+                        startDate.add(1, "day");
+                    }  while(!startDate.isAfter(endDate));
+
+                    timeCells.map(time => [dates.get(time.dataset.col), link.data().startTime+(.25*time.dataset.row)])
+
+                    return [available.innerText.split("/"), timeCells];
+                }
+                else {
+                    return [["0", "0"], []];
+                }
+            });
+            const availability = results[0];
+            const times = results[1];
+            console.log(url + ": " + availability[0], availability[1]);
+
+            if (link.data().availablePeople !== availability[0] || link.data().currentPeople !== availability[1]) {
+                await admin.firestore().collection('links').doc(link.id).update({
+                    availablePeople: availability[0],
+                    currentPeople: availability[1],
+                    lastCheckedTime: admin.firestore.FieldValue.serverTimestamp()
+                });
+                await notifySubscribers(link.data().subscribers, url, availability, times);
+            }
+            else {
+                await admin.firestore().collection('links').doc(link.id).update({lastCheckedTime: admin.firestore.FieldValue.serverTimestamp()});
+            }
+        });
     });
 };
 
