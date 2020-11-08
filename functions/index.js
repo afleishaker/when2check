@@ -166,8 +166,8 @@ const getAvailability = async (url) => {
                                 arr.push(parseFloat(v));
                             });
                             return "#" + arr.slice(0, 3).map((elem) => {
-                                elem = int.toString(16);
-                                return elem.length === 1 ? "0" + elem : elem
+                                let hex = elem.toString(16);
+                                return hex.length === 1 ? "0" + hex : hex
                             }) === maxAvailableColor;
                         });
 
