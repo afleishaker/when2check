@@ -27,7 +27,7 @@ const Dashboard = ({firebase}) => {
                 {links && links.map(link => {
                     return (
                         <Col span={12} key={link.id}>
-                            <LinkCard link={link} />
+                            <LinkCard loading={loading} link={link} />
                         </Col>
                     )
                 })

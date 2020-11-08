@@ -23,6 +23,8 @@ const createEvent = async (uid, title, startDate, endDate, startTime, endTime, n
             node.dispatchEvent (clickEvent);
         }
 
+        console.log("startDate: ", startDate);
+        console.log("endDate:", endDate);
         startDate = moment(startDate);
         endDate = moment(endDate);
 

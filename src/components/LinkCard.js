@@ -10,13 +10,14 @@ const LinkCard = (props) => {
     return (
         <Card key={id}
               title={title}
+              loading={props.loading}
               actions={[
                   <SettingOutlined key="setting" />,
                   <EditOutlined key="edit" />,
                   <DeleteOutlined key="ellipsis" />,
               ]}
         >
-            <Paragraph><b>Last Updated:</b> {moment(new Date(lastCheckedTime)).format("YYYY-MM-DD, h:mm a")}</Paragraph>
+            <Paragraph><b>Last Updated:</b> {moment(new Date(lastCheckedTime.toDate())).format("YYYY-MM-DD, h:mm a")}</Paragraph>
             <Paragraph><b>Available:</b> {currentPeople}/{expectedPeople}</Paragraph>
             <Paragraph copyable={{text: link}}><b>When2Meet Link:</b> {link}</Paragraph>
         </Card>
