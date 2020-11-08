@@ -1,27 +1,26 @@
 import React from "react";
-import { Card, Typography, Skeleton } from "antd";
+import { Card, Typography, Skeleton, Tooltip } from "antd";
 import moment from "moment";
-import { SettingOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { SettingOutlined, CopyTwoTone, DeleteTwoTone } from "@ant-design/icons";
+import {withFirebase} from "./Firebase";
 
 const { Paragraph } = Typography;
 
 
 const LinkCard = (props) => {
-    const { loading } = props;
+    const { loading, firebase } = props;
     const {title, currentPeople, expectedPeople, availablePeople, lastCheckedTime, link, id} = props.link;
 
     const buttons =
         [
-            <SettingOutlined key="setting" />,
-            <EditOutlined key="edit" />,
-            <DeleteOutlined key="ellipsis" />,
+            <Paragraph style={{margin: 0 }} copyable={{text: link}}></Paragraph>,
+            <Tooltip title="Delete"><DeleteTwoTone twoToneColor="#eb2f96" onClick={() => firebase.removeUserFromEvent(id)} key="ellipsis" /></Tooltip>,
         ];
 
     const loadingButtons =
         [
-            <Skeleton loading={true}><SettingOutlined key="setting" /></Skeleton>,
-            <Skeleton loading={true}><EditOutlined key="edit" /></Skeleton>,
-            <Skeleton loading={true}><DeleteOutlined key="ellipsis" /></Skeleton>,
+            <Skeleton loading={true}><Paragraph copyable={{text: link}}></Paragraph></Skeleton>,
+            <Skeleton loading={true}><DeleteTwoTone key="ellipsis" /></Skeleton>,
         ];
 
     return (
@@ -30,11 +29,11 @@ const LinkCard = (props) => {
               loading={loading}
               actions={loading ? loadingButtons : buttons}
         >
-            <Paragraph><b>Last Updated:</b> {lastCheckedTime && moment(new Date(lastCheckedTime.toDate())).format("YYYY-MM-DD, h:mm a")}</Paragraph>
+            <Paragraph><b>Last Updated:</b> {lastCheckedTime && moment(new Date(lastCheckedTime.toDate())).format("DD-MM-YYYY, h:mm a")}</Paragraph>
             <Paragraph><b>Available:</b> {currentPeople}/{expectedPeople}</Paragraph>
-            <Paragraph copyable={{text: link}}><b>When2Meet Link:</b> {link}</Paragraph>
+            <b>When2Meet Link:</b><a href={link}> {link}</a>
         </Card>
     )
 }
 
-export default LinkCard;
+export default withFirebase(LinkCard);
