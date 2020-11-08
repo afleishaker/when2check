@@ -1,4 +1,4 @@
-# when2check
+# when2check 🕑
 
 when2check is a platform built by Adam Fleishaker and Mitchell Dodell as part of Codestellation 2020.
 
@@ -21,10 +21,13 @@ We built the website using React, Firebase (Firestore, Cloud Functions, Hosting,
 It scrapes when2meet using a headless instance of puppeteer, which allows us to create events through the event and then get their availability.
 
 ## Challenges I ran into
+Developing code to scrape from when2meet, which doesn't necessarily provide identifiers for a lot of its components, so we had to calculate certain fields.
 
 ## Accomplishments that I'm proud of
+Extending when2meet's functionality in both email and text notification, as well as an extended interface in the duration of the hackathon!
 
 ## What I learned
+We learned how to utilize Firebase's various components, Puppeteer, the SendGrid API, and refreshed our knowledge on React and Twilio.
 
 ## What's next for when2check
-
+Future iterations could include Slack and other integrations, multiple subscribers, and more targeted notifications, or a complete re-write of when2meet.
