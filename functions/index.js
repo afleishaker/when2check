@@ -68,19 +68,7 @@ exports.createEvent = functions.runWith({
         memory: '1GB'
     }).https.onRequest((request, response) => {
     cors(request, response, async () => {
-        console.log("Request Body:")
-        console.log(request.body);
         const { uid, title, startDate, endDate, startTime, endTime, notifyUntil, expectedPeople } = request.body.data;
-        console.log("uid:", uid)
-        console.log("title:", title)
-
-        console.log("startDate:", startDate)
-        console.log("endDate:", endDate)
-
-        console.log("startTime:", startTime);
-        console.log("endTime:", endTime);
-        console.log("notifyUntil:", notifyUntil);
-        console.log("expectedPeople:", expectedPeople);
 
         const data = await createEvent(uid, title, startDate, endDate, startTime, endTime, notifyUntil, expectedPeople);
         response.send(data);
