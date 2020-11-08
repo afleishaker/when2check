@@ -30,7 +30,8 @@ const CreateEventModal = ({visible, setModalVisible, firebase}) => {
                 endDate: values.potentialDates[1].format('YYYY-MM-DD'),
                 startTime: values.times[0].format('HH'),
                 endTime: values.times[1].format('HH'),
-                notifyUntil: values.notifyUntil.format('YYYY-MM-DD')
+                notifyUntil: values.notifyUntil.format('YYYY-MM-DD'),
+                expectedPeople: values.expectedPeople
             };
             setLoading(true);
             firebase.createEvent(transformedValues);
@@ -85,7 +86,7 @@ const CreateEventModal = ({visible, setModalVisible, firebase}) => {
                 </Form.Item>
                 <Form.Item
                     label="Number of expected attendees"
-                    name="expectedAttendees"
+                    name="expectedPeople"
                     rules={[{ required: true, message: 'Please input the number of expected attendees' }]}
                 >
                     <InputNumber
