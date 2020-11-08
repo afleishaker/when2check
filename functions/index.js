@@ -39,9 +39,9 @@ const createEvent = async (uid, title, startDate, endDate, startTime, endTime, n
         }  while(!startDate.isAfter(endDate));
 
         // Selects time options for event
-        document.querySelector("[name='NoEarlierThan']").value = startTime;
+        document.querySelector("[name='NoEarlierThan']").value = Number(startTime);
         console.log(document.querySelector("[name='NoEarlierThan']").value)
-        document.querySelector("[name='NoLaterThan']").value = endTime;
+        document.querySelector("[name='NoLaterThan']").value = Number(endTime);
         console.log(document.querySelector("[name='NoLaterThan']").value);
         document.querySelector("[name='TimeZone']").value = "America/New_York";
 
@@ -63,6 +63,10 @@ const createEvent = async (uid, title, startDate, endDate, startTime, endTime, n
         expectedPeople: expectedPeople,
         lastCheckedTime: admin.firestore.FieldValue.serverTimestamp(),
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        startDate: startDate,
+        endDate: endDate,
+        startTime: startTime,
+        endTime: endTime,
         link: page.url(),
         notifyUntil: notifyUntil,
         subscribers: [uid],
@@ -88,7 +92,16 @@ exports.createUser = functions.auth.user().onCreate((user) => {
 });
 
 const getAvailability = async (url) => {
-    async function notifySubscribers(subscribers, url, availability) {
+
+    function generateNotification(url, availability, times) {
+        let notification = 'Updated Availability for ' + url + ': ' + availability[0] + "/" + availability[1];
+        if (times.length !== 0) {
+            notification += "Times: " + times.toString();
+        }
+        return notification;
+    }
+
+    async function notifySubscribers(subscribers, url, availability, times) {
         for (const uid of subscribers) {
             const user = await admin.firestore().collection('users').doc(uid).get();
             console.log(uid);
@@ -97,8 +110,8 @@ const getAvailability = async (url) => {
                     to: user.data().email,
                     from: 'when2check@gmail.com',
                     subject: 'Availability Update',
-                    text: 'Updated Availability for ' + url + ': ' + availability[0] + "/" + availability[1],
-                    html: '<strong>Updated Availability for ' + url + ':</strong> ' + availability[0] + "/" + availability[1],
+                    text: generateNotification(url, availability, times),
+                    html: generateNotification(url, availability, times),
                 }
                 sgMail
                     .send(msg)
@@ -111,7 +124,7 @@ const getAvailability = async (url) => {
                 if (user.data().phoneNumber) {
                     client.messages
                         .create({
-                            body: 'Updated Availability for ' + url + ': ' + availability[0] + "/" + availability[1],
+                            body: generateNotification(url, availability, times),
                             from: '+19146537960',
                             to: user.data().phoneNumber
                         })
@@ -127,25 +140,65 @@ const getAvailability = async (url) => {
     const browser = await puppeteer.launch({headless: true});
     const page = await browser.newPage();
     await page.goto(url);
-    let availability = await page.evaluate(() => {
-        const result = document.getElementById("MaxAvailable");
-        if (result) {
-            return result.innerText.split("/");
-        }
-        else {
-            return ["0", "0"];
-        }
-    });
-    console.log(availability);
-    admin.firestore().collection('links').where('link', '==', url).get().then(querySnapshot => {
-        querySnapshot.forEach(document => {
-            if (document.data().availablePeople !== availability[0] || document.data().currentPeople !== availability[1]) {
-                admin.firestore().collection('links').doc(document.id).update({availablePeople: availability[0], currentPeople: availability[1]});
-                notifySubscribers(document.data().subscribers, url, availability);
+    await admin.firestore().collection('links').where('link', '==', url).get().then(async querySnapshot => {
+
+        for (const link of querySnapshot.docs) {
+            let results = await page.evaluate(() => {
+                const available = document.getElementById("MaxAvailable");
+
+                if (available) {
+                    const table = document.getElementById("GroupKey").children[0];
+                    const header = table.getElementsByTagName("td");
+                    const maxAvailableColor = header[header.length-1].bgColor;
+
+                    const parseColor = (color) => {
+                        var arr=[]; color.replace(/[\d+\.]+/g, function(v) { arr.push(parseFloat(v)); });
+                        return "#" + arr.slice(0, 3).map(toHex).join("")
+                    }
+
+                    const toHex = (int) => {
+                        var hex = int.toString(16);
+                        return hex.length == 1 ? "0" + hex : hex;
+                    }
+
+                    const timeCells = Array.from(document.querySelectorAll("[id^='GroupTime']"))
+                        .filter(obj => parseColor(obj.style.background) === maxAvailableColor);
+
+                    const dates = [];
+                    const startDate = moment(link.data().startDate);
+                    const endDate = moment(link.data().endDate);
+
+                    // Selects date options for event
+                    do{
+                        dates.push(startDate.clone());
+                        startDate.add(1, "day");
+                    }  while(!startDate.isAfter(endDate));
+
+                    timeCells.map(time => [dates.get(time.dataset.col), link.data().startTime+(.25*time.dataset.row)])
+
+                    return [available.innerText.split("/"), timeCells];
+                }
+                else {
+                    return [["0", "0"], []];
+                }
+            });
+            const availability = results[0];
+            const times = results[1];
+            console.log(url + ": " + availability[0], availability[1]);
+
+            if (link.data().availablePeople !== availability[0] || link.data().currentPeople !== availability[1]) {
+                await admin.firestore().collection('links').doc(link.id).update({
+                    availablePeople: availability[0],
+                    currentPeople: availability[1],
+                    lastCheckedTime: admin.firestore.FieldValue.serverTimestamp()
+                });
+                await notifySubscribers(link.data().subscribers, url, availability, times);
             }
-        })
+            else {
+                await admin.firestore().collection('links').doc(link.id).update({lastCheckedTime: admin.firestore.FieldValue.serverTimestamp()});
+            }
+        }
     });
-    return availability;
 };
 
 exports.availability = functions.runWith({
