@@ -14,6 +14,7 @@ const createEvent = async (uid, title, startDate, endDate, startTime, endTime, n
     const browser = await puppeteer.launch({headless: true});
     const page = await browser.newPage();
     await page.goto('https://www.when2meet.com/');
+    page.on('console', consoleObj => console.log(consoleObj.text()));
     await page.evaluate((title, startDate, endDate, startTime, endTime) => {
 
         // Function to trigger mouse events
@@ -38,7 +39,9 @@ const createEvent = async (uid, title, startDate, endDate, startTime, endTime, n
 
         // Selects time options for event
         document.querySelector("[name='NoEarlierThan']").value = startTime;
+        console.log(document.querySelector("[name='NoEarlierThan']").value)
         document.querySelector("[name='NoLaterThan']").value = endTime;
+        console.log(document.querySelector("[name='NoLaterThan']").value);
         document.querySelector("[name='TimeZone']").value = "America/New_York";
 
         // Sets title for event
