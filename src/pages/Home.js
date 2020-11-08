@@ -4,10 +4,14 @@ import { Col, Row, Typography, Divider, Button } from 'antd';
 import {withFirebase} from "../components/Firebase";
 import { withRouter } from "react-router-dom";
 import * as ROUTES from '../constants/routes';
+import {useAuthState} from "react-firebase-hooks/auth";
 
 const { Title } = Typography;
 
 const Home = ({firebase, history}) => {
+
+    const [user] = useAuthState(firebase.auth);
+
     return (
         <div>
             <Particles
@@ -49,7 +53,9 @@ const Home = ({firebase, history}) => {
                         </Row>
                     </Col>
                     <Col xs={20} md={12} lg={8}>
-                        <Row gutter={8} style={{flexDirection: "column"}}>
+                        { user ? <Button type="primary" block onClick={() => {
+                            history.push(ROUTES.DASHBOARD)
+                        }}>Go to Dashboard</Button> : <Row gutter={8} style={{flexDirection: "column"}}>
                             <Col span={24}>
                                 <Button type="primary" block onClick={() => {
                                     firebase.signInWithGoogle().then(user => {
@@ -57,7 +63,7 @@ const Home = ({firebase, history}) => {
                                     });
                                 }}>Sign In With Google</Button>
                             </Col>
-                        </Row>
+                        </Row>}
                     </Col>
                 </Row>
             </Row>
