@@ -23,12 +23,12 @@ const createEvent = async (uid, title, startDate, endDate, startTime, endTime, n
             node.dispatchEvent (clickEvent);
         }
 
-        // startDate = moment(startDate);
-        // endDate = moment(endDate);
+        startDate = moment(startDate);
+        endDate = moment(endDate);
 
         // Selects date options for event
         do{
-            var dateElem = document.querySelector("input[value='"+ startDate +"']").previousElementSibling;
+            var dateElem = document.querySelector("input[value='"+ startDate.format("YYYY-MM-DD") +"']").previousElementSibling;
             triggerMouseEvent(dateElem, "mousedown")
             triggerMouseEvent(dateElem, "mouseup")
             startDate.add(1, "day");
@@ -55,7 +55,8 @@ const createEvent = async (uid, title, startDate, endDate, startTime, endTime, n
         availablePeople: "0",
         currentPeople: "0",
         expectedPeople: expectedPeople,
-        lastCheckedTime: Date.now(),
+        lastCheckedTime: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
         link: page.url(),
         notifyUntil: notifyUntil,
         subscribers: [uid],
