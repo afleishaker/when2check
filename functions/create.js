@@ -45,8 +45,8 @@ const createEvent = async (uid, title, startDate, endDate, startTime, endTime, n
     await browser.close();
     console.log(page.url());
     await admin.firestore().collection('links').add({
-        availablePeople: 0,
-        currentPeople: 0,
+        availablePeople: "0",
+        currentPeople: "0",
         expectedPeople: expectedPeople,
         lastCheckedTime: Date.now(),
         link: page.url(),
@@ -66,5 +66,5 @@ exports.createEvent = functions.https.onRequest((request, response) => {
 });
 
 exports.createUser = functions.auth.user().onCreate((user) => {
-    return admin.firestore().collection('users').add({email: user.email, userId: user.uid});
+    return admin.firestore().collection('users').doc(user.uid).set({email: user.email});
 });
