@@ -224,7 +224,7 @@ const getAvailability = async (url) => {
 exports.availability = functions.runWith({
     timeoutSeconds: 540,
     memory: '2GB'
-}).pubsub.schedule('every 1 minutes').onRun(async (context) => {
+}).pubsub.schedule('5 11 * * *').onRun(async (context) => {
     const querySnapshot = await admin.firestore().collection('links').get();
     for (document of querySnapshot.docs) {
         if (document.data().link) {
