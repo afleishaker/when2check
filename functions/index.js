@@ -94,7 +94,7 @@ const getAvailability = async (url) => {
     function generateNotification(url, availability, times) {
         let notification = 'Updated Availability for ' + url + ': ' + availability[0] + "/" + availability[1];
         if (times.length !== 0) {
-            notification += "Times: " + times.toString();
+            notification += "Times: \n" + times.toString();
         }
         return notification;
     }
@@ -143,9 +143,11 @@ const getAvailability = async (url) => {
 
     console.log("URL", url);
     // eslint-disable-next-line promise/always-return
-    await admin.firestore().collection('links').where('link', '==', url).get().then(querySnapshot => {
+    await admin.firestore().collection('links').where('link', '==', url).get().then(async querySnapshot => {
 
-        querySnapshot.docs.forEach(async link => {
+        for(const link of querySnapshot.docs) {
+
+            // eslint-disable-next-line no-await-in-loop
             let results = await page.evaluate((link) => {
                 const available = document.getElementById("MaxAvailable");
 
@@ -154,22 +156,23 @@ const getAvailability = async (url) => {
                     const header = table.getElementsByTagName("td");
                     const maxAvailableColor = header[header.length-1].bgColor;
 
-                    const timeCells = Array.from(document.querySelectorAll("[id^='GroupTime']"))
+                    let timeCells = Array.from(document.querySelectorAll("[id^='GroupTime']"))
                         .filter(obj => {
-                            let color = obj.style.background;
-                            var arr=[];
-                            color.replace(/[\d+\.]+/g, function(v) {
+                            let background = obj.style.background;
+                            let arr = [];
+                            background.replace(/[\d+\.]+/g, function(v) {
                                 arr.push(parseFloat(v));
                             });
-                            return "#" + arr.slice(0, 3).map((elem) => {
+                            let hex = "#" + arr.slice(0, 3).map((elem) => {
                                 let hex = elem.toString(16);
                                 return hex.length === 1 ? "0" + hex : hex
-                            }) === maxAvailableColor;
+                            });
+                            return hex.split(",").join("") === maxAvailableColor
                         });
 
                     const dates = [];
-                    const startDate = moment(link.data().startDate);
-                    const endDate = moment(link.data().endDate);
+                    const startDate = moment(link.startDate);
+                    const endDate = moment(link.endDate);
 
                     // Selects date options for event
                     do{
@@ -177,37 +180,50 @@ const getAvailability = async (url) => {
                         startDate.add(1, "day");
                     }  while(!startDate.isAfter(endDate));
 
-                    timeCells.map(time => [dates.get(time.dataset.col), link.data().startTime+(0.25*time.dataset.row)])
 
+                    function getTimes(time, dates){
+                        console.log("Start time is", link.startTime);
+                        console.log("Time Row is", time.dataset.row)
+                        let number = Number(link.startTime)+(0.25*Number(time.dataset.row))
+                        console.log("Number is ", number);
+                        console.log("Formatted moment number is", `${Math.floor(number)}.${(number%1)*60}`);
+                        let newTime = moment(`${Math.floor(number)}.${(number%1)*60}`, "LT").format("h:mm a")
+                        console.log("New time is", newTime);
+                        return `${dates[time.dataset.col].format("YYYY-MM-DD")} ${newTime}`
+                    }
+
+                    timeCells = timeCells.map(time => getTimes(time, dates))
                     return [available.innerText.split("/"), timeCells];
                 }
                 else {
                     return [["0", "0"], []];
                 }
-            }, link);
+            }, link.data());
             const availability = results[0];
             const times = results[1];
+
+            console.log("times:", times);
             console.log(url + ": " + availability[0], availability[1]);
 
-            if (link.data().availablePeople !== availability[0] || link.data().currentPeople !== availability[1]) {
+            console.log("Link data here:", link.data());
+            if(link.data().availablePeople !== availability[0] || link.data().currentPeople !== availability[1]) {
                 await admin.firestore().collection('links').doc(link.id).update({
                     availablePeople: availability[0],
                     currentPeople: availability[1],
                     lastCheckedTime: admin.firestore.FieldValue.serverTimestamp()
                 });
                 await notifySubscribers(link.data().subscribers, url, availability, times);
-            }
-            else {
+            } else {
                 await admin.firestore().collection('links').doc(link.id).update({lastCheckedTime: admin.firestore.FieldValue.serverTimestamp()});
             }
-        });
+        }
     });
 };
 
 exports.availability = functions.runWith({
     timeoutSeconds: 540,
     memory: '2GB'
-}).pubsub.schedule('every 5 minutes').onRun(async (context) => {
+}).pubsub.schedule('every 1 minutes').onRun(async (context) => {
     const querySnapshot = await admin.firestore().collection('links').get();
     for (const document of querySnapshot.docs) {
         if (document.data().link) {
