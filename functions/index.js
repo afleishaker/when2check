@@ -91,10 +91,11 @@ exports.createUser = functions.auth.user().onCreate((user) => {
 
 const getAvailability = async (url) => {
 
-    function generateNotification(url, availability, times) {
+    function generateNotification(url, availability, times, isEmail) {
         let notification = 'Updated Availability for ' + url + ': ' + availability[0] + "/" + availability[1];
+        let divider = isEmail ? "<br>" : "\n";
         if (times.length !== 0) {
-            notification += "Times: \n" + times.toString();
+            notification += divider + "Times: " + times.toString();
         }
         return notification;
     }
@@ -109,8 +110,8 @@ const getAvailability = async (url) => {
                     to: user.data().email,
                     from: 'when2check@gmail.com',
                     subject: 'Availability Update',
-                    text: generateNotification(url, availability, times),
-                    html: generateNotification(url, availability, times),
+                    text: generateNotification(url, availability, times, true),
+                    html: generateNotification(url, availability, times, true),
                 }
                 sgMail
                     .send(msg)
@@ -123,7 +124,7 @@ const getAvailability = async (url) => {
                 if (user.data().phoneNumber) {
                     client.messages
                         .create({
-                            body: generateNotification(url, availability, times),
+                            body: generateNotification(url, availability, times, false),
                             from: '+19146537960',
                             to: user.data().phoneNumber
                         })
@@ -225,7 +226,7 @@ exports.availability = functions.runWith({
     memory: '2GB'
 }).pubsub.schedule('every 1 minutes').onRun(async (context) => {
     const querySnapshot = await admin.firestore().collection('links').get();
-    for (const document of querySnapshot.docs) {
+    for (document of querySnapshot.docs) {
         if (document.data().link) {
             await getAvailability(document.data().link);
         }
